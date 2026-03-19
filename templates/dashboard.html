@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeGenie - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:             #eef0f3;
+            --surface:        #f5f6f8;
+            --surface-raised: #fafbfc;
+            --border:         #dde1e7;
+            --border-soft:    #e6e9ed;
+            --text:           #0f1419;
+            --text-secondary: #374151;
+            --accent:         #3a6ea8;
+            --accent-light:   #eef3fa;
+            --accent-border:  #b8cfe8;
+            --accent-text:    #1e4976;
+            --radius:         9px;
+            --radius-sm:      6px;
+            --header-h:       50px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            height: var(--header-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 9px;
+            font-size: 14.5px; font-weight: 600;
+            color: var(--text); letter-spacing: -0.2px;
+        }
+
+        .logo-mark {
+            width: 24px; height: 24px; border-radius: 7px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent-border);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .logo-mark svg {
+            width: 13px; height: 13px;
+            stroke: var(--accent); fill: none;
+            stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .user-section { display: flex; align-items: center; gap: 8px; position: relative; }
+
+        .user-menu-button {
+            display: flex; align-items: center; gap: 7px;
+            background: transparent; border: 1px solid transparent;
+            padding: 4px 8px; border-radius: var(--radius-sm);
+            cursor: pointer; font-family: inherit; font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .user-menu-button:hover {
+            border-color: var(--border);
+            background: var(--surface-raised);
+        }
+
+        .user-avatar {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--accent-light);
+            border: 1px solid var(--accent-border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent-text); font-weight: 600; font-size: 11px;
+        }
+
+        .user-menu-caret { font-size: 11px; }
+
+        .user-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 160px;
+            background: #fff;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(15, 20, 25, 0.08);
+            padding: 4px;
+            display: none;
+            z-index: 20;
+        }
+
+        .user-menu-dropdown.open { display: block; }
+
+        .user-menu-item {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .user-menu-item:hover {
+            background: var(--surface-raised);
+            color: var(--text);
+        }
+
+        .page-body {
+            padding: 20px 24px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .snippet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .snippet-card {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .snippet-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .snippet-prompt {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .snippet-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        .snippet-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: #ffffff;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-soft);
+            padding: 8px 9px;
+            max-height: 320px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+        .empty-state {
+            padding: 32px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ── Feedback modal ── */
+        .fb-overlay {
+            position: fixed; inset: 0;
+            background: rgba(10,14,26,.55); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .25s;
+        }
+        .fb-overlay.open { opacity: 1; pointer-events: all; }
+        .fb-modal {
+            background: #fff; border-radius: 20px; padding: 32px 30px 26px;
+            width: 100%; max-width: 400px;
+            box-shadow: 0 24px 64px rgba(10,14,26,.22);
+            transform: translateY(20px) scale(.96);
+            transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+            text-align: center;
+        }
+        .fb-overlay.open .fb-modal { transform: translateY(0) scale(1); }
+        .fb-emoji { font-size: 42px; margin-bottom: 10px; }
+        .fb-title { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+        .fb-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.5; }
+        .fb-stars { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; }
+        .star { font-size: 40px; cursor: pointer; color: #e5e7eb; transition: color .1s, transform .12s; user-select: none; line-height: 1; }
+        .star.lit { color: #f59e0b; }
+        .star:hover { transform: scale(1.2); }
+        .fb-slbl { font-size: 13px; font-weight: 600; color: var(--text-secondary); min-height: 20px; margin-bottom: 18px; }
+        .fb-slbl.on { color: var(--accent-text); }
+        .fb-chip-label { font-size: 11.5px; color: var(--text-secondary); margin-bottom: 8px; text-align: left; }
+        .fb-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
+        .fb-chip {
+            padding: 5px 13px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--surface-raised);
+            font-size: 12px; color: var(--text-secondary); cursor: pointer;
+            transition: all .12s; font-family: inherit;
+        }
+        .fb-chip:hover { border-color: var(--accent-border); background: var(--accent-light); color: var(--accent-text); }
+        .fb-chip.on { border-color: var(--accent); background: var(--accent-light); color: var(--accent-text); font-weight: 600; }
+        .fb-actions { display: flex; gap: 8px; }
+        .fb-skip {
+            flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 10px;
+            background: transparent; font-size: 13px; color: var(--text-secondary);
+            cursor: pointer; font-family: inherit;
+        }
+        .fb-skip:hover { background: var(--surface); }
+        .fb-submit {
+            flex: 2; padding: 10px; background: var(--accent); color: #fff;
+            border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: background .15s;
+        }
+        .fb-submit:hover:not(:disabled) { background: #2d5a8e; }
+        .fb-submit:disabled { opacity: .4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 14 14">
+                    <polyline points="3,4 1,7 3,10"></polyline>
+                    <polyline points="11,4 13,7 11,10"></polyline>
+                    <line x1="8.5" y1="2" x2="5.5" y2="12"></line>
+                </svg>
+            </div>
+            CodeGenie
+        </div>
+        <button onclick="window.location.href='/homepage'" style="
+            padding:6px 14px; background:var(--accent-light); border:1px solid var(--accent-border);
+            border-radius:var(--radius-sm); font-size:13px; color:var(--accent-text); font-weight:500;
+            cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:5px;">
+            ← Home
+        </button>
+        <div class="user-section">
+            <button class="user-menu-button" type="button" onclick="toggleUserMenu(event)">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <span id="user-name">{{ user.name }}</span>
+                <span class="user-menu-caret">▾</span>
+            </button>
+            <div class="user-menu-dropdown" id="user-menu-dropdown">
+                <button class="user-menu-item" type="button" onclick="window.location.href='/dashboard'">Dashboard</button>
+                <button class="user-menu-item" type="button" onclick="logout()">Sign out</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-body">
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Your saved code snippets.</div>
+
+        {% if snippets %}
+        <div class="snippet-grid">
+            {% for s in snippets %}
+            <div class="snippet-card">
+                <div class="snippet-meta">
+                    <span>{{ s.language|upper }}</span>
+                    <span class="ts" data-ts="{{ s.created_at.isoformat() }}"></span>
+                </div>
+                <div class="snippet-prompt">{{ s.prompt }}</div>
+
+                <div class="snippet-label">Code</div>
+                <pre class="snippet-code">{{ s.code }}</pre>
+
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            No snippets saved yet. Generate some code on the homepage and use the “Save” button to add it here.
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+
+        // Render timestamps in browser local time
+        document.querySelectorAll('.ts').forEach(function(el) {
+            var iso = el.dataset.ts;
+            if (!iso) return;
+            var d = new Date(iso + 'Z'); // treat as UTC
+            el.textContent = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+                + ' · '
+                + d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+        });
+        function toggleUserMenu(e) {
+            e.stopPropagation();
+            var menu = document.getElementById('user-menu-dropdown');
+            menu.classList.toggle('open');
+        }
+
+        window.addEventListener('click', function() {
+            var menu = document.getElementById('user-menu-dropdown');
+            if (menu) menu.classList.remove('open');
+        });
+
+        var fbRating = 0, fbChips = [];
+        var STAR_LABELS = ['','😕 Poor','😐 Fair','🙂 Good','😊 Great','🤩 Excellent!'];
+
+        function logout() {
+            try {
+                var u = JSON.parse(localStorage.getItem('user') || '{}');
+                // Admins skip feedback
+                if (u.is_admin) { doLogout(); return; }
+                // Verified users (12+ feedbacks) skip feedback too
+                if (u.is_verified === true || u.is_verified === 1) { doLogout(); return; }
+            } catch(e) {}
+            showFeedback();
+        }
+
+        function showFeedback() {
+            fbRating = 0; fbChips = [];
+            document.querySelectorAll('.star').forEach(function(s){ s.classList.remove('lit'); });
+            var lbl = document.getElementById('fbSlbl');
+            lbl.textContent = 'Tap a star to rate'; lbl.className = 'fb-slbl';
+            document.querySelectorAll('.fb-chip').forEach(function(c){ c.classList.remove('on'); });
+            document.getElementById('fbSubmit').disabled = true;
+            document.getElementById('fbSubmit').textContent = 'Submit & Sign Out';
+            document.getElementById('fbOv').classList.add('open');
+        }
+
+        function hideFeedback() { document.getElementById('fbOv').classList.remove('open'); }
+
+        async function submitFeedback() {
+            var btn = document.getElementById('fbSubmit');
+            btn.disabled = true; btn.textContent = 'Submitting…';
+            try {
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating: fbRating, message: fbChips.join(', ') })
+                });
+            } catch(e) {}
+            hideFeedback();
+            doLogout();
+        }
+
+        function doLogout() {
+            localStorage.removeItem('user');
+            fetch('/api/logout', { method: 'POST' })
+                .then(function(){ window.location.href = '/'; })
+                .catch(function(){ window.location.href = '/'; });
+        }
+
+        // Star + chip listeners (set up once DOM is ready)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sync is_verified from server so verified users skip popup correctly
+            fetch('/api/me')
+                .then(function(r){ return r.ok ? r.json() : null; })
+                .then(function(data){
+                    if (!data) return;
+                    var u = JSON.parse(localStorage.getItem('user') || '{}');
+                    u.is_verified    = data.is_verified;
+                    u.feedback_count = data.feedback_count;
+                    localStorage.setItem('user', JSON.stringify(u));
+                })
+                .catch(function(){});
+
+            document.querySelectorAll('.star').forEach(function(s) {
+                s.addEventListener('click', function() {
+                    fbRating = parseInt(s.dataset.v);
+                    document.querySelectorAll('.star').forEach(function(x){
+                        x.classList.toggle('lit', parseInt(x.dataset.v) <= fbRating);
+                    });
+                    var lbl = document.getElementById('fbSlbl');
+                    lbl.textContent = STAR_LABELS[fbRating]; lbl.className = 'fb-slbl on';
+                    document.getElementById('fbSubmit').disabled = false;
+                });
+            });
+            document.querySelectorAll('.fb-chip').forEach(function(c) {
+                c.addEventListener('click', function() {
+                    c.classList.toggle('on');
+                    var t = c.textContent;
+                    if (c.classList.contains('on')) fbChips.push(t);
+                    else fbChips = fbChips.filter(function(x){ return x !== t; });
+                });
+            });
+            document.getElementById('fbSkip').addEventListener('click', function(){ hideFeedback(); doLogout(); });
+            document.getElementById('fbSubmit').addEventListener('click', submitFeedback);
+            document.addEventListener('keydown', function(e){ if(e.key==='Escape') hideFeedback(); });
+        });
+
+        // Initialize avatar from template user context
+        (function () {
+            var name = '{{ user.name }}' || 'User';
+            var avatar = document.getElementById('user-avatar');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+        })();
+    </script>
+
+    <!-- Feedback modal — same as homepage -->
+    <div class="fb-overlay" id="fbOv">
+        <div class="fb-modal">
+            <div class="fb-emoji">✨</div>
+            <div class="fb-title">How was CodeGenie today?</div>
+            <div class="fb-sub">5 seconds — your rating helps us improve.</div>
+            <div class="fb-stars" id="fbStars">
+                <span class="star" data-v="1">★</span>
+                <span class="star" data-v="2">★</span>
+                <span class="star" data-v="3">★</span>
+                <span class="star" data-v="4">★</span>
+                <span class="star" data-v="5">★</span>
+            </div>
+            <div class="fb-slbl" id="fbSlbl">Tap a star to rate</div>
+            <div class="fb-chip-label">What stood out? (optional)</div>
+            <div class="fb-chips" id="fbChips">
+                <button class="fb-chip">Great code quality</button>
+                <button class="fb-chip">Fast generation</button>
+                <button class="fb-chip">Good explanation</button>
+                <button class="fb-chip">UI is clean</button>
+                <button class="fb-chip">Needs improvement</button>
+                <button class="fb-chip">Wrong output</button>
+            </div>
+            <div class="fb-actions">
+                <button class="fb-skip" id="fbSkip">Skip</button>
+                <button class="fb-submit" id="fbSubmit" disabled>Submit &amp; Sign Out</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

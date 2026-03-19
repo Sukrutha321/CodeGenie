@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeGenie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#eef0f3; --surface:#f5f6f8; --raised:#fafbfc; --hover:#f0f2f5;
+            --border:#dde1e7; --bsoft:#e6e9ed; --bfocus:#6b8cba;
+            --text:#0f1419; --text2:#374151; --text3:#5c6573;
+            --accent:#3a6ea8; --al:#eef3fa; --ab:#b8cfe8; --at:#1e4976; --ah:#2d5a8e;
+            --danger:#b05252; --dl:#fdf1f1;
+            --r:9px; --rs:6px; --hh:50px;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+        header{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+        .logo{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:600;color:var(--text)}
+        .logo-mark{width:24px;height:24px;border-radius:7px;background:var(--al);border:1px solid var(--ab);display:flex;align-items:center;justify-content:center}
+        .logo-mark svg{width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+        .u-wrap{position:relative}
+        .u-btn{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;padding:4px 8px;border-radius:var(--rs);cursor:pointer;font-family:inherit;font-size:13px;color:var(--text2)}
+        .u-btn:hover{border-color:var(--border);background:var(--raised)}
+        .avatar{width:26px;height:26px;border-radius:50%;background:var(--al);border:1px solid var(--ab);display:flex;align-items:center;justify-content:center;color:var(--at);font-weight:700;font-size:11px;position:relative}
+        .verified-badge{
+            position:absolute;bottom:-5px;right:-5px;
+            width:17px;height:17px;border-radius:50%;
+            background:linear-gradient(135deg,#f59e0b,#f97316);
+            border:2px solid #fff;
+            display:flex;align-items:center;justify-content:center;
+            font-size:9px;line-height:1;
+            box-shadow:0 2px 8px rgba(249,115,22,0.55),0 0 0 3px rgba(249,115,22,0.15);
+            animation:badge-pop .45s cubic-bezier(.34,1.56,.64,1) forwards
+        }
+        .verified-ring{
+            outline:none;
+            box-shadow:0 0 0 2px #fff, 0 0 0 4px rgba(249,115,22,0.6),
+                       0 0 12px rgba(249,115,22,0.25);
+            border-radius:50%;
+        }
+        @keyframes badge-pop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+
+        /* ── Verified celebration popup ── */
+        .vfy-overlay{position:fixed;inset:0;background:rgba(10,14,26,.45);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s}
+        .vfy-overlay.open{opacity:1;pointer-events:all}
+        .vfy-card{background:#fff;border-radius:22px;padding:36px 32px 28px;width:100%;max-width:380px;text-align:center;box-shadow:0 32px 80px rgba(10,14,26,.22);transform:translateY(24px) scale(.95);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+        .vfy-overlay.open .vfy-card{transform:translateY(0) scale(1)}
+        .vfy-burst{font-size:52px;margin-bottom:8px;animation:burst .6s ease}
+        @keyframes burst{0%{transform:scale(.4) rotate(-15deg);opacity:0}60%{transform:scale(1.2) rotate(6deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+        .vfy-title{font-size:21px;font-weight:800;color:var(--text);margin-bottom:6px}
+        .vfy-sub{font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+        .vfy-name{color:var(--accent);font-weight:700}
+        .vfy-stars{font-size:22px;letter-spacing:3px;margin-bottom:20px}
+        .vfy-close{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+        .vfy-close:hover{background:var(--ah)}
+        .feedback-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);background:var(--raised);border:1px solid var(--border);border-radius:20px;padding:2px 8px;margin-left:4px;flex-shrink:0}
+        .feedback-pill .fp-star{color:#f59e0b;font-size:10px}
+        .feedback-pill .fp-cnt{font-weight:600;color:var(--text2)}
+        .caret{font-size:10px;color:var(--text3)}
+        .dd{position:absolute;top:calc(100% + 6px);right:0;min-width:178px;background:#fff;border-radius:var(--r);border:1px solid var(--border);box-shadow:0 12px 32px rgba(15,20,25,.1);padding:4px;display:none;z-index:100}
+        .dd.open{display:block}
+        .di{width:100%;padding:8px 10px;border-radius:var(--rs);border:none;background:transparent;text-align:left;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px}
+        .di:hover{background:var(--raised);color:var(--text)}
+        .di.red:hover{background:var(--dl);color:var(--danger)}
+        .ddiv{height:1px;background:var(--bsoft);margin:4px 0}
+
+        .body{height:calc(100vh - var(--hh));display:flex;flex-direction:column;padding:14px 20px;gap:12px;overflow:hidden}
+
+        .lang-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:6px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+        .bar-lbl{font-size:12px;font-weight:500;color:var(--text2);white-space:nowrap}
+        .sep{width:1px;height:14px;background:var(--bsoft)}
+        .lgrid{display:flex;gap:4px;flex:1}
+        .lbtn{flex:1;padding:8px 10px;background:transparent;border:1px solid transparent;border-radius:var(--rs);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit}
+        .lbtn:hover{background:var(--hover);border-color:var(--border)}
+        .lbtn.on{background:var(--al);border-color:var(--ab)}
+        .lbtn.on .ln{color:var(--at);font-weight:600}
+        .li{font-size:15px;line-height:1}
+        .ln{font-size:13px;font-weight:500;color:var(--text)}
+
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0;overflow:hidden}
+        .left{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+
+        .panel{background:var(--raised);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s}
+        .panel:focus-within{border-color:var(--bfocus);box-shadow:0 0 0 3px rgba(58,110,168,.07)}
+        .pp{flex:1;min-height:0}
+        .ph{padding:7px 12px;border-bottom:1px solid var(--bsoft);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:rgba(238,240,243,.5)}
+        .pl{font-size:12px;font-weight:500;color:var(--text2)}
+        .pl2{font-size:12px;font-weight:600;color:var(--at);display:flex;align-items:center;gap:6px}
+        .pip{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.8}
+        .kbd{font-size:11px;color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:'JetBrains Mono',monospace}
+        .tw{flex:1;padding:10px 12px;overflow:hidden;display:flex}
+        textarea{width:100%;height:100%;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.8;resize:none;outline:none}
+        textarea::placeholder{color:var(--text3)}
+
+        .acts{display:flex;gap:6px;flex-shrink:0}
+        .btn-g{padding:9px 24px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:var(--r);font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s;min-width:130px;font-family:inherit}
+        .btn-g:hover:not(:disabled){background:var(--ah)}
+        .btn-g:disabled{opacity:.4;cursor:not-allowed}
+        .btn-c{padding:8px 14px;background:var(--raised);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit}
+        .btn-c:hover{border-color:#daa;color:var(--danger);background:var(--dl)}
+
+        .ep{flex:1;min-height:0;background:var(--raised);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+        .eb{padding:12px 14px 14px;flex:1;overflow-y:auto}
+        .et{font-size:13.5px;color:var(--text);line-height:1.8;white-space:pre-line}
+        .eph{font-size:13px;color:var(--text3);line-height:1.7}
+
+        /* RIGHT — generated code only, nothing else */
+        .cp{background:var(--raised);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+        .pbtns{display:flex;gap:6px;align-items:center}
+        .btn-cp{padding:3px 10px;background:var(--hover);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit}
+        .btn-cp:hover{background:var(--al);border-color:var(--ab);color:var(--at)}
+        .btn-sv{padding:3px 11px;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;color:#166534;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;display:none}
+        .btn-sv:hover{background:#dcfce7;border-color:#4ade80}
+        .btn-sv:disabled{opacity:.5;cursor:not-allowed}
+        .cs{flex:1;padding:12px 14px;overflow-y:auto}
+        .cs::-webkit-scrollbar{width:4px}
+        .cs::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+        .ce{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text);margin:0}
+        .cs pre{margin:0;padding:0;background:transparent}
+        .cs pre[class*="language-"]{background:var(--raised)}
+        .cs .token.comment{color:#22863a}
+        .cs .token.keyword{color:#d73a49}
+        .cs .token.string{color:#032f62}
+        .cs .token.number{color:#005cc5}
+        .cs .token.function,.cs .token.class-name{color:#6f42c1}
+        .cs pre[class*="language-"] .token{text-shadow:none}
+
+        /* FEEDBACK MODAL */
+        .ov{position:fixed;inset:0;background:rgba(10,14,26,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s}
+        .ov.open{opacity:1;pointer-events:all}
+        .mc{background:#fff;border-radius:20px;padding:32px 30px 26px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(10,14,26,.22);transform:translateY(20px) scale(.96);transition:transform .28s cubic-bezier(.34,1.56,.64,1);text-align:center}
+        .ov.open .mc{transform:translateY(0) scale(1)}
+        .me{font-size:42px;margin-bottom:10px}
+        .mt{font-size:19px;font-weight:700;color:var(--text);margin-bottom:5px}
+        .ms{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5}
+        .srow{display:flex;justify-content:center;gap:6px;margin-bottom:6px}
+        .star{font-size:40px;cursor:pointer;color:#e5e7eb;transition:color .1s,transform .12s;user-select:none;line-height:1}
+        .star.lit{color:#f59e0b}
+        .star:hover{transform:scale(1.2)}
+        .slbl{font-size:13px;font-weight:600;color:var(--text3);min-height:20px;margin-bottom:20px}
+        .slbl.on{color:var(--at)}
+        .ctl{font-size:11.5px;color:var(--text3);margin-bottom:8px;text-align:left}
+        .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+        .chip{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--raised);font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s;font-family:inherit}
+        .chip:hover{border-color:var(--ab);background:var(--al);color:var(--at)}
+        .chip.on{border-color:var(--accent);background:var(--al);color:var(--at);font-weight:600}
+        .mf{display:flex;gap:8px}
+        .btn-sk{flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit}
+        .btn-sk:hover{background:var(--surface)}
+        .btn-sn{flex:2;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+        .btn-sn:hover:not(:disabled){background:var(--ah)}
+        .btn-sn:disabled{opacity:.4;cursor:not-allowed}
+
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(6px);background:#111827;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:500}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+        @keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+        .lang-bar{animation:fu .2s ease both}
+        .left{animation:fu .22s .04s ease both}
+        .cp{animation:fu .22s .08s ease both}
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <div class="logo-mark">
+            <svg viewBox="0 0 14 14"><polyline points="3,4 1,7 3,10"/><polyline points="11,4 13,7 11,10"/><line x1="8.5" y1="2" x2="5.5" y2="12"/></svg>
+        </div>
+        CodeGenie
+    </div>
+    <div class="u-wrap">
+        <button class="u-btn" id="uBtn">
+            <div class="avatar" id="ua">U<span class="verified-badge" id="vbadge" style="display:none">✓</span></div>
+            <span id="uname">User</span>
+            <span class="feedback-pill" id="fpill" style="display:none"><span class="fp-star">★</span><span class="fp-cnt" id="fcnt">0</span>/12</span>
+            <span class="caret">▾</span>
+        </button>
+        <div class="dd" id="dd">
+            <button class="di" id="dashBtn">📊 Dashboard</button>
+            <div id="adminWrap" style="display:none">
+                <button class="di" id="adminBtn">🛡 Admin Panel</button>
+            </div>
+            <div class="ddiv"></div>
+            <button class="di red" id="outBtn">↩ Sign out</button>
+        </div>
+    </div>
+</header>
+
+<div class="body">
+    <div class="lang-bar">
+        <span class="bar-lbl">Language</span>
+        <div class="sep"></div>
+        <div class="lgrid">
+            <button class="lbtn on" data-lang="python">    <span class="li">🐍</span><span class="ln">Python</span></button>
+            <button class="lbtn" data-lang="javascript">   <span class="li">⚡</span><span class="ln">JavaScript</span></button>
+            <button class="lbtn" data-lang="java">         <span class="li">☕</span><span class="ln">Java</span></button>
+            <button class="lbtn" data-lang="cpp">          <span class="li">⚙️</span><span class="ln">C++</span></button>
+            <button class="lbtn" data-lang="c">            <span class="li">🔷</span><span class="ln">C</span></button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="left">
+            <div class="panel pp">
+                <div class="ph"><span class="pl">Prompt</span><span class="kbd">⌃ ↵</span></div>
+                <div class="tw">
+                    <textarea id="prompt" placeholder="Describe what you want to build…&#10;&#10;e.g.  Check if a number is prime&#10;      Binary search on a sorted array&#10;      Fibonacci with memoization"></textarea>
+                </div>
+            </div>
+            <div class="acts">
+                <button class="btn-g" id="genBtn"><span id="genLbl">Generate</span></button>
+                <button class="btn-c" id="clrBtn">Clear</button>
+            </div>
+            <div class="panel ep">
+                <div class="ph"><span class="pl2"><span class="pip"></span> Explanation</span></div>
+                <div class="eb"><div id="expl" class="eph">What the code does will appear here…</div></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: code output only. No run button. No console. Period. -->
+        <div class="cp">
+            <div class="ph">
+                <span class="pl2">Generated Code</span>
+                <div class="pbtns">
+                    <button class="btn-cp" id="copyBtn">Copy</button>
+                    <button class="btn-sv" id="saveBtn">💾 Save</button>
+                </div>
+            </div>
+            <div class="cs">
+                <pre><code id="codeOut" class="ce language-plaintext" style="color:var(--text3)">// Generated code will appear here…</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Feedback modal: shows ONLY for non-admin users on sign out -->
+<div class="ov" id="fbOv">
+    <div class="mc">
+        <div class="me">✨</div>
+        <div class="mt">How was CodeGenie today?</div>
+        <div class="ms">5 seconds — your rating helps us improve.</div>
+        <div class="srow">
+            <span class="star" data-v="1">★</span>
+            <span class="star" data-v="2">★</span>
+            <span class="star" data-v="3">★</span>
+            <span class="star" data-v="4">★</span>
+            <span class="star" data-v="5">★</span>
+        </div>
+        <div class="slbl" id="slbl">Tap a star to rate</div>
+        <div style="text-align:left">
+            <div class="ctl">What stood out? (optional)</div>
+            <div class="chips" id="chips">
+                <button class="chip">Great code quality</button>
+                <button class="chip">Fast generation</button>
+                <button class="chip">Good explanation</button>
+                <button class="chip">UI is clean</button>
+                <button class="chip">Needs improvement</button>
+                <button class="chip">Wrong output</button>
+            </div>
+        </div>
+        <div class="mf">
+            <button class="btn-sk" id="skipBtn">Skip</button>
+            <button class="btn-sn" id="sendBtn" disabled>Submit &amp; Sign Out</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var lang = 'python', rating = 0, chips = [], isAdmin = false;
+var LABELS = ['','😕 Poor','😐 Fair','🙂 Good','😊 Great','🤩 Excellent!'];
+
+window.addEventListener('DOMContentLoaded', function () {
+
+    /* read user from localStorage first (instant render) */
+    try {
+        var u = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('uname').textContent = u.name || 'User';
+        document.getElementById('ua').textContent = (u.name || 'U').charAt(0).toUpperCase();
+        isAdmin = (u.is_admin === true || u.is_admin === 1);
+        if (isAdmin) document.getElementById('adminWrap').style.display = 'block';
+        updateVerifiedUI(u);
+    } catch(e) {}
+
+    /* then fetch fresh data from server — syncs verified status, feedback count */
+    fetch('/api/me')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(data){
+            if (!data) return;
+            /* update localStorage with latest values */
+            var u = JSON.parse(localStorage.getItem('user') || '{}');
+            u.is_verified    = data.is_verified;
+            u.feedback_count = data.feedback_count;
+            u.is_admin       = data.is_admin;
+            localStorage.setItem('user', JSON.stringify(u));
+            /* refresh badge / ring immediately */
+            updateVerifiedUI(u);
+        })
+        .catch(function(){});  /* silently ignore if offline */
+
+    /* dropdown */
+    document.addEventListener('click', function(){ document.getElementById('dd').classList.remove('open'); });
+    document.getElementById('uBtn').addEventListener('click', function(e){
+        e.stopPropagation();
+        document.getElementById('dd').classList.toggle('open');
+    });
+    document.getElementById('dashBtn').addEventListener('click', function(){ window.location.href='/dashboard'; });
+    document.getElementById('adminBtn').addEventListener('click', function(){ window.location.href='/admin'; });
+
+    /* SIGN OUT — this is the key logic */
+    document.getElementById('outBtn').addEventListener('click', function(e){
+        e.stopPropagation();
+        document.getElementById('dd').classList.remove('open');
+        if (isAdmin) {
+            doLogout();                /* admin: no feedback, straight out */
+        } else {
+            /* re-read from localStorage in case it updated this session */
+            try {
+                var uNow = JSON.parse(localStorage.getItem('user') || '{}');
+                var isVerified = (uNow.is_verified === true || uNow.is_verified === 1);
+            } catch(e) { var isVerified = false; }
+            if (isVerified) {
+                doLogout();            /* verified: they've given 10+ feedbacks, don't ask again */
+            } else {
+                showFeedback();        /* regular: show feedback modal */
+            }
+        }
+    });
+
+    /* language */
+    document.querySelectorAll('.lbtn').forEach(function(b){
+        b.addEventListener('click', function(){
+            lang = b.dataset.lang;
+            document.querySelectorAll('.lbtn').forEach(function(x){ x.classList.remove('on'); });
+            b.classList.add('on');
+        });
+    });
+
+    /* generate */
+    document.getElementById('genBtn').addEventListener('click', generate);
+    document.getElementById('prompt').addEventListener('keydown', function(e){
+        if (e.ctrlKey && e.key==='Enter') generate();
+    });
+    document.getElementById('clrBtn').addEventListener('click', clearAll);
+    document.getElementById('copyBtn').addEventListener('click', copyCode);
+    document.getElementById('saveBtn').addEventListener('click', saveCode);
+
+    /* stars */
+    document.querySelectorAll('.star').forEach(function(s){
+        s.addEventListener('click', function(){
+            rating = parseInt(s.dataset.v);
+            document.querySelectorAll('.star').forEach(function(x){
+                x.classList.toggle('lit', parseInt(x.dataset.v) <= rating);
+            });
+            var l = document.getElementById('slbl');
+            l.textContent = LABELS[rating]; l.className = 'slbl on';
+            document.getElementById('sendBtn').disabled = false;
+        });
+    });
+
+    /* chips */
+    document.querySelectorAll('#chips .chip').forEach(function(c){
+        c.addEventListener('click', function(){
+            c.classList.toggle('on');
+            var t = c.textContent;
+            if (c.classList.contains('on')) chips.push(t);
+            else chips = chips.filter(function(x){ return x!==t; });
+        });
+    });
+
+    /* modal buttons */
+    document.getElementById('skipBtn').addEventListener('click', function(){ hideFeedback(); doLogout(); });
+    document.getElementById('sendBtn').addEventListener('click', submitFeedback);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') hideFeedback(); });
+});
+
+/* generate */
+async function generate() {
+    var input = document.getElementById('prompt').value.trim();
+    if (!input) { toast('Please enter a prompt'); return; }
+    var co = document.getElementById('codeOut'), ex = document.getElementById('expl');
+    var gb = document.getElementById('genBtn'), sb = document.getElementById('saveBtn');
+    gb.disabled = true;
+    document.getElementById('genLbl').textContent = 'Generating…';
+    co.style.color='var(--text3)'; co.textContent='// Working…'; co.className='ce language-plaintext';
+    ex.className='eph'; ex.textContent='Thinking…';
+    sb.style.display='none';
+    try {
+        var r = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:input,language:lang})});
+        var d = await r.json();
+        if (d.success) {
+            co.style.color='var(--text)'; co.textContent=d.code;
+            co.className='ce language-'+(d.language||'plaintext');
+            if(window.Prism) Prism.highlightElement(co);
+            var expl=(d.explanation||'').replace(/^\s*explanation\s*:\s*/i,'').replace(/^\s*:\s*/,'').trim();
+            ex.className=expl?'et':'eph'; ex.textContent=expl||'No explanation provided.';
+            sb.style.display='inline-block';
+        } else {
+            co.style.color='var(--danger)'; co.textContent='// Error: '+(d.error||'Failed');
+            ex.className='eph'; ex.textContent='Something went wrong.';
+        }
+    } catch(e) {
+        co.style.color='var(--danger)'; co.textContent='// Network error — please try again.';
+        ex.textContent='Could not reach the server.';
+    } finally {
+        gb.disabled=false; document.getElementById('genLbl').textContent='Generate';
+    }
+}
+
+function copyCode() {
+    var t = document.getElementById('codeOut').textContent;
+    if (t.includes('Generated code will appear')) { toast('Nothing to copy yet'); return; }
+    navigator.clipboard.writeText(t).then(function(){ toast('✓ Copied to clipboard'); });
+}
+
+async function saveCode() {
+    var p = document.getElementById('prompt').value.trim();
+    var c = document.getElementById('codeOut').textContent.trim();
+    if (!p||!c||c.includes('Generated code will appear')) { toast('Generate some code first'); return; }
+    var b = document.getElementById('saveBtn');
+    b.disabled=true; b.textContent='Saving…';
+    try {
+        var r = await fetch('/api/snippets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,code:c,output:'',language:lang})});
+        var d = await r.json();
+        if(d.success){ toast('✓ Saved to Dashboard'); b.textContent='✓ Saved'; }
+        else { toast(d.message||'Save failed'); b.textContent='💾 Save'; }
+    } catch(e){ toast('Save failed'); b.textContent='💾 Save'; }
+    finally { b.disabled=false; }
+}
+
+function clearAll() {
+    document.getElementById('prompt').value='';
+    var c=document.getElementById('codeOut');
+    c.textContent='// Generated code will appear here…'; c.style.color='var(--text3)'; c.className='ce language-plaintext';
+    document.getElementById('expl').className='eph';
+    document.getElementById('expl').textContent='What the code does will appear here…';
+    document.getElementById('saveBtn').style.display='none';
+}
+
+function showFeedback() {
+    rating=0; chips=[];
+    document.querySelectorAll('.star').forEach(function(s){ s.classList.remove('lit'); });
+    var l=document.getElementById('slbl'); l.textContent='Tap a star to rate'; l.className='slbl';
+    document.querySelectorAll('#chips .chip').forEach(function(c){ c.classList.remove('on'); });
+    document.getElementById('sendBtn').disabled=true;
+    document.getElementById('sendBtn').textContent='Submit & Sign Out';
+    document.getElementById('fbOv').classList.add('open');
+}
+function hideFeedback() { document.getElementById('fbOv').classList.remove('open'); }
+
+async function submitFeedback() {
+    var b=document.getElementById('sendBtn'); b.disabled=true; b.textContent='Submitting…';
+    try {
+        var fbResp = await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rating:rating,message:chips.join(', ')})});
+        if(fbResp.ok){
+            var fbData = await fbResp.json();
+            var u = JSON.parse(localStorage.getItem('user')||'{}');
+            u.feedback_count = fbData.feedback_count;
+            u.is_verified    = fbData.is_verified;
+            localStorage.setItem('user', JSON.stringify(u));
+            updateVerifiedUI(u);
+            /* show celebration popup on exactly the 15th feedback */
+            if (fbData.newly_verified) {
+                hideFeedback();
+                document.getElementById('vfyName').textContent = u.name || 'there';
+                document.getElementById('vfyOv').classList.add('open');
+                /* close popup -> then logout */
+                document.getElementById('vfyCloseBtn').onclick = function() {
+                    document.getElementById('vfyOv').classList.remove('open');
+                    doLogout();
+                };
+                return;   /* skip the doLogout() below */
+            }
+        }
+    } catch(e){}
+    hideFeedback(); doLogout();
+}
+
+function updateVerifiedUI(u) {
+    var badge  = document.getElementById('vbadge');
+    var avatar = document.getElementById('ua');
+    var fpill  = document.getElementById('fpill');
+    var fcnt   = document.getElementById('fcnt');
+    var count  = parseInt(u.feedback_count) || 0;
+    var isVerified = (u.is_verified === true || u.is_verified === 1);
+
+    if (isVerified) {
+        /* show gold star badge on avatar */
+        if (badge)  { badge.style.display = 'flex'; }
+        if (avatar) { avatar.classList.add('verified-ring'); }
+        /* hide the progress pill — they're done */
+        if (fpill)  { fpill.style.display = 'none'; }
+    } else {
+        /* show feedback progress pill e.g. "3/10" */
+        if (badge)  { badge.style.display = 'none'; }
+        if (avatar) { avatar.classList.remove('verified-ring'); }
+        if (count > 0) {
+            if (fpill) { fpill.style.display = 'inline-flex'; }
+            if (fcnt)  { fcnt.textContent = count; }
+        }
+    }
+}
+
+function doLogout() {
+    localStorage.removeItem('user');
+    fetch('/api/logout',{method:'POST'}).then(function(){ window.location.href='/'; }).catch(function(){ window.location.href='/'; });
+}
+
+function toast(msg) {
+    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); },2400);
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+
+    <!-- Verified celebration popup -->
+    <div class="vfy-overlay" id="vfyOv">
+        <div class="vfy-card">
+            <div class="vfy-burst">🎉</div>
+            <div style="margin-bottom:12px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;
+                    width:54px;height:54px;border-radius:50%;
+                    background:linear-gradient(135deg,#f59e0b,#f97316);
+                    font-size:26px;box-shadow:0 4px 18px rgba(249,115,22,0.4);
+                    border:3px solid #fff;">✓</span>
+            </div>
+            <div class="vfy-title">You're now Verified!</div>
+            <div class="vfy-sub">Hey <span class="vfy-name" id="vfyName"></span> — you've submitted 10+ feedbacks and earned your verified badge. Your input shapes CodeGenie. Thank you 🙌</div>
+            <div style="display:flex;justify-content:center;gap:4px;margin-bottom:20px;">
+                <span style="font-size:13px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:20px;padding:3px 12px;font-weight:600;">⭐ Verified Member</span>
+            </div>
+            <button class="vfy-close" id="vfyCloseBtn">Got it, thanks! 🎉</button>
+        </div>
+    </div>
+</body>
+</html>
