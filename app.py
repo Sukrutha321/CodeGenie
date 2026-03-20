@@ -635,7 +635,7 @@ def submit_feedback():
             return jsonify({'success': False, 'message': 'User not found'}), 404
 
         # Only count feedback up to 15 times
-        if user.feedback_count < 15:
+        if user.feedback_count < 12:
             db.session.add(Feedback(
                 user_email=email,
                 user_name=user.name,
@@ -643,10 +643,11 @@ def submit_feedback():
                 message=message
             ))
             user.feedback_count = (user.feedback_count or 0) + 1
-            # Verify once count hits 10
-            if user.feedback_count >= 10 and not user.is_verified:
+            # Verify once count hits 12
+            if user.feedback_count >= 12 and not user.is_verified:
                 user.is_verified = True
-                logger.info(f"User {email} is now VERIFIED (10 feedbacks given)")
+                newly_verified = True
+                logger.info(f"User {email} is now VERIFIED (12 feedbacks given)")
             # Update session
             session['user']['feedback_count'] = user.feedback_count
             session['user']['is_verified']    = bool(user.is_verified)
@@ -657,6 +658,7 @@ def submit_feedback():
             'success':        True,
             'feedback_count': user.feedback_count,
             'is_verified':    bool(user.is_verified),
+            'newly_verified': newly_verified
         })
     except Exception as e:
         db.session.rollback()
